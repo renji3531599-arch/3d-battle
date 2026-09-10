@@ -64,4 +64,5 @@ npm run dev    # static server (dist/bundle.js を配信)
 npm run build  # esbuild 単一バンドル化 (importmap不要)
 npm test       # check + build + logic/stage/E2E/bundle tests
 npm run check  # syntax check
+npm run test:browser  # 実ブラウザE2E（要Chromium: CHROMIUM_BINで指定）
 ```
