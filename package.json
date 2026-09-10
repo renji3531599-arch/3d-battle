@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "description": "超本格3Dアリーナ格闘ゲーム (一人称/三人称切替)",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "build": "esbuild js/main.js --bundle --format=iife --target=es2020 --minify --outfile=dist/bundle.js --log-level=warning",
+    "build:site": "node scripts/vercel-build.mjs",
     "dev": "python3 -m http.server 8000",
     "check": "node --check js/config.js && node --check js/audio.js && node --check js/anim.js && node --check js/fighter.js && node --check js/world.js && node --check js/game.js && node --check js/main.js",
     "test": "npm run check && npm run build && node test/sim.mjs && node test/world.mjs && node test/boot.mjs && node test/bundle.mjs",
@@ -12,8 +16,10 @@
   },
   "dependencies": {
     "esbuild": "^0.28.2",
-    "jsdom": "^30.0.1",
-    "puppeteer-core": "^25.10.0",
     "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.1",
+    "puppeteer-core": "^25.10.0"
   }
 }

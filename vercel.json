@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci --omit=dev --no-audit --no-fund --loglevel=error || echo '[warn] npm install failed -> falling back to committed dist/bundle.js'",
+  "buildCommand": "node scripts/vercel-build.mjs",
+  "outputDirectory": "site",
+  "headers": [
+    {
+      "source": "/dist/bundle.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
