@@ -314,7 +314,15 @@ export class Game {
     this.load_fill(10,'描画エンジン起動...');
     // renderer
     const q=this.qualityDef();
-    this.renderer=new THREE.WebGLRenderer({canvas:$('cv'),antialias:q.antialias,powerPreference:'high-performance'});
+    try {
+      this.renderer=new THREE.WebGLRenderer({canvas:$('cv'),antialias:q.antialias,powerPreference:'high-performance'});
+    } catch(e1) {
+      try {
+        this.renderer=new THREE.WebGLRenderer({canvas:$('cv'),antialias:false});
+      } catch(e2) {
+        throw new Error('WebGLの初期化に失敗しました。このブラウザ/端末では3D表示が使えません。ハードウェアアクセラレーションをONにしてお試しください。');
+      }
+    }
     this.renderer.setSize(innerWidth,innerHeight);
     this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,q.pixelRatio));
     this.renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -357,7 +365,7 @@ export class Game {
     this.audio.init();
     this.audio.startBGM('title');
     this.load_fill(100,'完了');
-    setTimeout(()=>{ $('loader').style.opacity=0; setTimeout(()=>$('loader').remove(),600); },350);
+    setTimeout(()=>{ const l=$('loader'); if(!l) return; l.style.opacity=0; l.style.pointerEvents='none'; setTimeout(()=>l.remove(),600); },350);
     this.last=performance.now();
     requestAnimationFrame((t)=>this.loop(t));
   }

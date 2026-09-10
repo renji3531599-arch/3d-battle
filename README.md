@@ -60,7 +60,8 @@ npm run dev        # または: python3 -m http.server 8000
 ## 開発
 
 ```bash
-npm run dev    # static server
-npm test       # logic + stage/effects tests (146 asserts)
+npm run dev    # static server (dist/bundle.js を配信)
+npm run build  # esbuild 単一バンドル化 (importmap不要)
+npm test       # check + build + logic/stage/E2E/bundle tests
 npm run check  # syntax check
 ```

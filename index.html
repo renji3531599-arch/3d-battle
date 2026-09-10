@@ -6,8 +6,22 @@
 <title>NEON KUMITE | 超本格3D格闘</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>">
 <link rel="stylesheet" href="css/style.css">
-<script type="importmap">
-{ "imports": { "three": "./vendor/three.module.min.js" } }
+<script>
+/* 起動番兵: 10秒以内に起動しなければ原因を表示して再読込可能にする */
+(function(){
+window.__kumiteBoot={t0:Date.now(),errors:[]};
+window.addEventListener('error',function(e){try{window.__kumiteBoot.errors.push(String((e&&e.message)||'script error'));}catch(_){}},{capture:true});
+window.addEventListener('unhandledrejection',function(e){try{window.__kumiteBoot.errors.push('promise: '+String((e.reason&&e.reason.message)||e.reason));}catch(_){}});
+setTimeout(function(){
+  if(window.__kumiteBooted) return;
+  var tx=document.getElementById('load-tx');
+  var msg='起動に時間がかかっています。通信状況をご確認ください。';
+  if(window.__kumiteBoot.errors.length) msg='起動エラー: '+window.__kumiteBoot.errors.slice(-2).join(' / ');
+  if(tx) tx.textContent=msg+' —— タップで再読み込み';
+  var l=document.getElementById('loader');
+  if(l){ l.style.opacity=1; l.onclick=function(){ location.reload(); }; }
+},10000);
+})();
 </script>
 </head>
 <body>
@@ -232,6 +246,6 @@
   <div id="toast" class="hidden"></div>
   <div id="loader"><div class="load-box"><div class="load-logo">NEON 組手 KUMITE</div><div class="load-bar"><div id="load-fill"></div></div><div id="load-tx">読み込み中...</div></div></div>
 </div>
-<script type="module" src="js/main.js"></script>
+<script defer src="dist/bundle.js"></script>
 </body>
 </html>
