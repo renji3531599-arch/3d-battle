@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>NEON KUMITE | 超本格3D格闘</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+  <div id="vignette"></div>
+  <div id="flash"></div>
+  <div id="speedlines"></div>
+  <div id="letterbox"><div class="lb top"></div><div class="lb bot"></div></div>
+  <div id="dmg-layer"></div>
+
+  <!-- ===== HUD ===== -->
+  <div id="hud" class="hidden">
+    <div id="hud-top">
+      <div class="hside left">
+        <div class="hname"><span id="tag1" class="ptag p1">1P</span><span id="name1">PLAYER</span></div>
+        <div class="hpbar"><div id="hp1g" class="ghost"></div><div id="hp1" class="hp"></div><div class="hpsheen"></div></div>
+        <div class="subbars">
+          <div class="meterbar"><div id="meter1" class="meter"></div><span class="mlabel">必殺</span></div>
+          <div class="stambar"><div id="stam1" class="stam"></div></div>
+        </div>
+        <div id="rounds1" class="pips"><span class="pip"></span><span class="pip"></span></div>
+      </div>
+      <div id="timer-box"><div id="timer">60</div><div id="round-label">R1</div></div>
+      <div class="hside right">
+        <div class="hname"><span id="name2">CPU</span><span id="tag2" class="ptag p2">CPU</span></div>
+        <div class="hpbar flip"><div id="hp2g" class="ghost"></div><div id="hp2" class="hp"></div><div class="hpsheen"></div></div>
+        <div class="subbars flip">
+          <div class="meterbar"><div id="meter2" class="meter"></div><span class="mlabel">必殺</span></div>
+          <div class="stambar"><div id="stam2" class="stam"></div></div>
+        </div>
+        <div id="rounds2" class="pips"><span class="pip"></span><span class="pip"></span></div>
+      </div>
+    </div>
+    <div id="combo1" class="combo left hidden"><span class="cn">0</span><span class="ct">HITS</span><span class="cd"></span></div>
+    <div id="combo2" class="combo right hidden"><span class="cn">0</span><span class="ct">HITS</span><span class="cd"></span></div>
+    <div id="an-wrap"><div id="an-main"></div><div id="an-sub"></div></div>
+    <div id="banner" class="hidden"></div>
+    <div id="hint">WASD 移動 · J パンチ · K キック · L ヘビー · E 投げ · R 必殺 · C ガード · Space 跳躍 · Shift 回避 · V 視点切替</div>
+    <div id="fps">60</div>
+    <div id="crosshair" class="hidden"><div></div></div>
+    <div id="surv-info" class="hidden">連勝 <span id="surv-wins">0</span></div>
+    <div id="train-info" class="hidden"></div>
+  </div>
+
+  <!-- ===== Touch controls ===== -->
+  <div id="touch" class="hidden">
+    <div id="stick"><div id="stick-knob"></div></div>
+    <div id="tbtns">
+      <button class="tbtn small" data-a="cam">視点</button>
+      <button class="tbtn small" data-a="dash">回避</button>
+      <button class="tbtn" data-a="block">防御</button>
+      <button class="tbtn" data-a="jump">跳</button>
+      <button class="tbtn hit" data-a="punch">拳</button>
+      <button class="tbtn hit" data-a="kick">蹴</button>
+      <button class="tbtn hit" data-a="heavy">重</button>
+      <button class="tbtn hit" data-a="grab">投</button>
+      <button class="tbtn super" data-a="super">必殺</button>
+    </div>
+  </div>
+
+  <!-- ===== Screens ===== -->
+  <div id="ui">
+    <div id="s-title" class="screen">
+      <div class="title-stars"></div>
+      <div class="title-inner">
+        <div class="t-kicker">超本格 3D ARENA FIGHTING</div>
+        <h1 class="t-logo"><span class="l-neon">NEON</span> <span class="l-jp">組手</span> <span class="l-neon2">KUMITE</span></h1>
+        <div class="t-sub">一人称 × 三人称 — 自在に切り替えて闘え</div>
+        <button id="btn-start" class="btn big pulse">▶ &nbsp;GAME START</button>
+        <div class="t-modes">
+          <span>VS CPU</span><i>◆</i><span>サバイバル</span><i>◆</i><span>2P対戦</span><i>◆</i><span>修行</span>
+        </div>
+        <div class="t-foot">v1.0 · キーボード / マウス / ゲームパッド対応 · <span id="t-ver"></span></div>
+      </div>
+    </div>
+
+    <div id="s-mode" class="screen hidden">
+      <div class="panel">
+        <h2 class="p-title">モード選択 <small>SELECT MODE</small></h2>
+        <div class="mode-grid">
+          <button id="m-arcade" class="mode-card"><div class="mc-icon">⚔️</div><div class="mc-name">VS CPU</div><div class="mc-desc">3連戦を勝ち抜け</div></button>
+          <button id="m-survival" class="mode-card"><div class="mc-icon">🔥</div><div class="mc-name">サバイバル</div><div class="mc-desc">どこまで勝ち続けられるか</div></button>
+          <button id="m-versus" class="mode-card"><div class="mc-icon">👥</div><div class="mc-name">2P 対戦</div><div class="mc-desc">オフライン二人対戦</div></button>
+          <button id="m-training" class="mode-card"><div class="mc-icon">🥋</div><div class="mc-name">修行</div><div class="mc-desc">技を磨く練習場</div></button>
+        </div>
+        <div class="row center gap">
+          <button id="m-help" class="btn ghost">❓ 遊び方</button>
+          <button id="m-settings" class="btn ghost">⚙ 設定</button>
+          <button id="m-back" class="btn ghost">◀ 戻る</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="s-select" class="screen hidden">
+      <div class="panel wide">
+        <h2 class="p-title"><span id="sel-title">ファイター選択</span> <small>SELECT FIGHTER</small></h2>
+        <div id="char-row" class="char-row"></div>
+        <div id="p2-wrap" class="hidden">
+          <h3 class="p-sub">2P ファイター <small>PLAYER 2</small></h3>
+          <div id="p2-row" class="char-row small"></div>
+        </div>
+        <div class="sel-cols">
+          <div><h3 class="p-sub">舞台 <small>STAGE</small></h3><div id="stage-row" class="pill-row"></div></div>
+          <div id="diff-wrap"><h3 class="p-sub">強さ <small>CPU LEVEL</small></h3><div id="diff-row" class="pill-row"></div></div>
+        </div>
+        <div class="row center gap">
+          <button id="btn-select-back" class="btn ghost">◀ 戻る</button>
+          <button id="btn-fight" class="btn big">🔥 出撃 FIGHT</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="s-help" class="screen hidden">
+      <div class="panel wide help">
+        <h2 class="p-title">遊び方 <small>HOW TO PLAY</small></h2>
+        <div class="help-cols">
+          <div>
+            <h3>🎮 基本操作 (1P)</h3>
+            <table class="keys">
+              <tr><td>W A S D</td><td>移動 (カメラ基準)</td></tr>
+              <tr><td>マウス</td><td>カメラ回転 ※クリックで捕捉</td></tr>
+              <tr><td>J / 左クリック</td><td>パンチ (連打で3連撃)</td></tr>
+              <tr><td>K / 右クリック</td><td>キック (連打で2連撃)</td></tr>
+              <tr><td>L / F</td><td>ヘビー (打ち上げ)</td></tr>
+              <tr><td>E / G</td><td>投げ (ガード不能)</td></tr>
+              <tr><td>R / Q</td><td>必殺技 (ゲージMAX時)</td></tr>
+              <tr><td>C / Ctrl</td><td>ガード (押しっぱなし)</td></tr>
+              <tr><td>Space</td><td>ジャンプ (空中攻撃可)</td></tr>
+              <tr><td>Shift + 方向</td><td>ダッシュ / ステップ回避</td></tr>
+              <tr><td>V</td><td>一人称 ⇄ 三人称 切替</td></tr>
+              <tr><td>T</td><td>挑発 (ゲージ微増・隙あり)</td></tr>
+              <tr><td>Esc / P</td><td>ポーズ</td></tr>
+            </table>
+          </div>
+          <div>
+            <h3>⚔️ バトルシステム</h3>
+            <ul class="sys">
+              <li><b>ガード</b> — ほとんどの攻撃を防ぐ。削りダメージとスタミナ消費あり。</li>
+              <li><b>パリィ</b> — 攻撃が当たる直前にガードを押すと完全無効化＋大反撃チャンス！</li>
+              <li><b>投げ</b> — ガード不能。ガード固めを崩せ。外されると隙だらけ。</li>
+              <li><b>コンボ</b> — ヒット中に追撃で連続ヒット。打ち上げ後は空中追撃 (空中コンボ) が狙える。</li>
+              <li><b>壁バウンド</b> — 吹き飛び中に壁に叩きつけると追加ダメージ＋跳ね返り。</li>
+              <li><b>必殺技</b> — ゲージMAXで発動。シネマティックな5連撃＋フィニッシュ。</li>
+              <li><b>一人称視点</b> — Vキーで切替。臨場感MAXの拳の応酬を体感せよ。</li>
+              <li><b>2P対戦</b> — 矢印キー＋テンキー (または2つ目のパッド) でoperators参戦。</li>
+            </ul>
+            <h3>🎮 ゲームパッド</h3>
+            <p class="pad">左スティック 移動 · 右スティック カメラ · A ジャンプ · X パンチ · B キック · Y ヘビー · LB ガード · RB 投げ · RT 必殺 · LT ダッシュ</p>
+          </div>
+        </div>
+        <div class="row center"><button id="btn-help-back" class="btn">◀ 戻る</button></div>
+      </div>
+    </div>
+
+    <div id="s-settings" class="screen hidden">
+      <div class="panel">
+        <h2 class="p-title">設定 <small>SETTINGS</small></h2>
+        <div class="set-grid">
+          <label>音量 <input id="set-vol" type="range" min="0" max="100" value="70"></label>
+          <label>ミュート <input id="set-mute" type="checkbox"></label>
+          <label>画質 <select id="set-quality"><option value="low">軽量</option><option value="med" selected>標準</option><option value="high">高画質</option></select></label>
+          <label>影 <input id="set-shadow" type="checkbox" checked></label>
+          <label>画面振動 <input id="set-shake" type="checkbox" checked></label>
+          <label>開始視点 <select id="set-cam"><option value="third">三人称</option><option value="first">一人称</option></select></label>
+          <label>CPU強さ <select id="set-diff"><option value="easy">やさしい</option><option value="normal" selected>ふつう</option><option value="hard">つよい</option><option value="master">鬼神</option></select></label>
+        </div>
+        <div class="row center gap">
+          <button id="btn-set-back" class="btn">◀ 戻る</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="s-pause" class="screen hidden">
+      <div class="panel">
+        <h2 class="p-title"><span id="p-title">一時停止</span> <small>PAUSE</small></h2>
+        <div id="train-opts" class="hidden">
+          <h3 class="p-sub">修行メニュー</h3>
+          <div class="pill-row" id="dummy-row">
+            <button class="pill on" data-dummy="stand">棒立ち</button>
+            <button class="pill" data-dummy="guard">ガード</button>
+            <button class="pill" data-dummy="random">ランダム</button>
+          </div>
+          <div class="row center gap">
+            <button class="btn ghost sm" data-tact="reset">位置リセット</button>
+            <button class="btn ghost sm" data-tact="meter">必殺MAX</button>
+            <button class="btn ghost sm" data-tact="heal">体力回復</button>
+          </div>
+        </div>
+        <label class="vol-row">音量 <input id="p-vol" type="range" min="0" max="100" value="70"></label>
+        <div class="col gap">
+          <button id="btn-resume" class="btn big">▶ 再開する</button>
+          <div class="row center gap">
+            <button id="btn-restart" class="btn ghost">↻ はじめから</button>
+            <button id="btn-quit" class="btn ghost">✕ やめる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="s-result" class="screen hidden">
+      <div class="panel result">
+        <div id="res-kicker">RESULT</div>
+        <h1 id="res-title">YOU WIN</h1>
+        <div id="res-sub"></div>
+        <div id="res-stats"></div>
+        <div class="row center gap">
+          <button id="btn-rematch" class="btn big">⚔️ 再戦する</button>
+          <button id="btn-reselect" class="btn ghost">選択に戻る</button>
+          <button id="btn-retitle" class="btn ghost">タイトルへ</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="versus" class="hidden">
+      <div class="vs-side l"><div id="vs-kanji1">影</div><div id="vs-name1">???</div><div id="vs-style1"></div></div>
+      <div class="vs-mid"><div class="vs-vs">VS</div><div id="vs-stage"></div><div id="vs-sub"></div></div>
+      <div class="vs-side r"><div id="vs-kanji2">鋼</div><div id="vs-name2">???</div><div id="vs-style2"></div></div>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+  <div id="loader"><div class="load-box"><div class="load-logo">NEON 組手 KUMITE</div><div class="load-bar"><div id="load-fill"></div></div><div id="load-tx">読み込み中...</div></div></div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

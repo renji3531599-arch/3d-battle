@@ -1,0 +1,14 @@
+{
+  "name": "neon-kumite",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "超本格3Dアリーナ格闘ゲーム (一人称/三人称切替)",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "check": "node --check js/config.js && node --check js/audio.js && node --check js/anim.js && node --check js/fighter.js && node --check js/world.js && node --check js/game.js && node --check js/main.js",
+    "test": "node test/sim.mjs && node test/world.mjs"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  }
+}
