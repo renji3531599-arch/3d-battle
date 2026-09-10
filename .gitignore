@@ -3,3 +3,9 @@ node_modules/
 *.log
 
 test/shots/
+
+# vercel build の出力先 (outputDirectory)
+site/
+
+# vercel CLI のローカルリンク情報
+.vercel/

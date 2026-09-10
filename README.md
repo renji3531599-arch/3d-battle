@@ -62,7 +62,46 @@ npm run dev        # または: python3 -m http.server 8000
 ```bash
 npm run dev    # static server (dist/bundle.js を配信)
 npm run build  # esbuild 単一バンドル化 (importmap不要)
+npm run build:site  # Vercel 配信用に site/ へ配信物だけをまとめる
 npm test       # check + build + logic/stage/E2E/bundle tests
 npm run check  # syntax check
 npm run test:browser  # 実ブラウザE2E（要Chromium: CHROMIUM_BINで指定）
 ```
+
+## Vercel デプロイ
+
+このゲームは **サーバーもビルドツールも不要な純静的サイト**です。
+`index.html` / `css/style.css` / `dist/bundle.js` の3ファイルだけで動きます
+(Three.js はバンドルに同梱、外部 fetch なし)。
+
+リポジトリ直下の `vercel.json` だけで設定は完了します。
+GitHub リポジトリを Vercel に Import するだけでデプロイでき、
+**Build & Development Settings を手動で変更する必要はありません。**
+
+| 設定 | 値 | 備考 |
+|---|---|---|
+| Framework Preset | Other (`"framework": null`) | 自動判定させない |
+| Install Command | `npm ci --omit=dev …` | 失敗しても `\|\| echo` で握りつぶす |
+| Build Command | `node scripts/vercel-build.mjs` | 依存ゼロの素の Node だけで実行 |
+| Output Directory | `site` | 配信する3ファイルだけを出力 |
+| Node.js Version | 22.x (`package.json` の `engines.node`) | 依存の engines 要件に一致 |
+
+### なぜこの構成か
+
+`dist/bundle.js` は **ビルド済みでコミットされています**。
+そのため `npm install` が失敗しても (esbuild の postinstall やレジストリの不調など)、
+ビルドスクリプトがコミット済みバンドルにフォールバックして **デプロイは必ず成功します**。
+
+- `node_modules` に esbuild があれば → ソースから `dist/bundle.js` を再生成
+- 無ければ → コミット済みの `dist/bundle.js` をそのまま使用
+
+`js/` を編集したら、コミット前に `npm run build` (または `npm test`) を実行して
+`dist/bundle.js` を更新してください。これが本番に配信される実体です。
+
+### CLI でデプロイする場合
+
+```bash
+npx vercel          # プレビュー
+npx vercel --prod   # 本番
+```
+
